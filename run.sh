@@ -1,9 +1,7 @@
 flex scanner.lex 
 bison -Wcounterexamples -d parser.ypp
-g++ -std=c++17 -o hw2 *.c *.cpp
-cp hw2 tests/
-cd tests/
-./hw2 <t1.in > output.txt
-cat output.txt
+g++ -std=c++17 -o hw2 *.c *.cpp -o hw2.out
+cp hw2.out tests/
+
 
 

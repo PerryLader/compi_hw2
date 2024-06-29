@@ -43,12 +43,13 @@ continue                                                                        
 \{                                                                                  return LBRACE;
 \}                                                                                  return RBRACE;
 =                                                                                   return ASSIGN;
-[<!=>]=|>|<                                                                         return RELOP;
+==|!=                                                                               return EQUALORNOT;
+>|<|>=|<=                                                                           return RELOP;
 [-+]                                                                                return MINUS_PLUS;
 [*/]                                                                                return DIV_MUL;
-\/\/[^\n\r]*                                                                        return COMMENT;
+\/\/[^\n\r]*                                                                        ;
 {letter}[a-zA-Z0-9]*                                                                return ID;
 ({digitnozero}+{digit}*)|0                                                          return NUM;
-\"{stringprefix}*\"                                                                 return STRING;
+\"{stringprefix}+\"                                                                 return STRING;
 {whitespace}                                                                        ;
-.                                                                                   {output::errorLex(yylineno); exit(0);}
+.                                                                                   {output::errorLex(yylineno); exit(1);}

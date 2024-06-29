@@ -1,3 +1,0 @@
-28: Type -> INT
-5: RetType -> Type
-line 1: syntax error

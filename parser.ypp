@@ -1,92 +1,170 @@
 %{
-    #include <stdio.h>
-    #include "output.hpp"
+#include "output.hpp"
 
-    extern int yylineno;
-    extern int yylex();
-    int yyerror(const char* message);
+extern int yylineno;
+extern int yylex();
+int yyerror(const char* message);
 
-     using namespace output;
+using namespace output;
 %}
 
-    %token VOID INT BYTE B BOOL CONST TRUE FALSE IF RETURN WHILE BREAK CONTINUE SC  MINUS_PLUS DIV_MUL COMMENT ID NUM STRING
+%nonassoc LOW_PREC_PAREN_EXP
 
-    %right ASSIGN
+%token INT BYTE BOOL
+%token TRUE FALSE
+%token BREAK CONTINUE
+%token RETURN
+%token STRING
+%token WHILE
+%token IF
 
-    %left OR
-    %left AND
-    %left RELOP
-    %left MINUS_PLUS
-    %left DIV_MUL
-	%right NOT
-    %left LPAREN RPAREN LBRACE RBRACE
-    %right ELSE
+%nonassoc NUM
+%nonassoc B
+
+%nonassoc ID
+%nonassoc SC
+
+%right ASSIGN
+%left OR
+%left AND
+%left EQUALORNOT 
+%left RELOP 
+%left MINUS_PLUS 
+%left DIV_MUL 
+%right NOT
+%left LPAREN RPAREN
+%left LBRACE RBRACE
+
+%nonassoc ELSE
+
+%nonassoc Max_Priority
 
 %%
-Program: Funcs                                                      {printProductionRule(1);}
 
-Funcs: /*epsilon*/                                                  {printProductionRule(2);}
-       | FuncDecl Funcs                                             {printProductionRule(3);}
+Program: Statements {
+    printProductionRule(1);
+}
+;
 
-FuncDecl: RetType ID LPAREN Formals RPAREN LBRACE Statements RBRACE {printProductionRule(4);}
+Statements:
+    Statement {
+        printProductionRule(2);
+    }
+    | Statements Statement {
+        printProductionRule(3);
+    }
+;
 
-RetType: Type                                                       {printProductionRule(5);}
-         | VOID                                                     {printProductionRule(6);}
+Statement:
+    Type ID ASSIGN Exp SC {
+        printProductionRule(6);
+    }
+    | IF LPAREN Exp RPAREN Statement ELSE Statement {
+        printProductionRule(11);
+    }
+    | RETURN SC {
+        printProductionRule(9);
+    }
+    | Type ID SC {
+        printProductionRule(5);
+    }
+    | IF LPAREN Exp RPAREN Statement {
+        printProductionRule(10);
+    }
+    | WHILE LPAREN Exp RPAREN Statement {
+        printProductionRule(12);
+    }
+    | LBRACE Statements RBRACE {
+        printProductionRule(4);
+    }
+    | ID ASSIGN Exp SC {
+        printProductionRule(7);
+    }
+    | Call SC %prec Max_Priority {
+        printProductionRule(8);
+    }
+    | BREAK SC {
+        printProductionRule(13);
+    }
+    | CONTINUE SC {
+        printProductionRule(14);
+    }
+;
 
-Formals: /*epsilon*/                                                {printProductionRule(7);}
-         | FormalsList                                              {printProductionRule(8);}
+Call: ID LPAREN Exp RPAREN {
+    printProductionRule(15);
+}
+;
 
-FormalsList: FormalDecl                                             {printProductionRule(9);}
+Type:
+    INT {
+        printProductionRule(16);
+    }
+    | BYTE {
+        printProductionRule(17);
+    }
+    | BOOL {
+        printProductionRule(18);
+    }
+;
 
-FormalDecl:  Type ID                                                {printProductionRule(10);}
-
-Statements: Statement                                               {printProductionRule(11);}
-            | Statements Statement                                  {printProductionRule(12);}
-
-Statement: LBRACE Statements RBRACE                                 {printProductionRule(13);}
-           | Type ID SC                                             {printProductionRule(14);}
-           | Type ID ASSIGN Exp SC                                  {printProductionRule(15);}
-           | ID ASSIGN Exp SC                                       {printProductionRule(16);}
-           | Call SC                                                {printProductionRule(17);}
-           | RETURN SC                                              {printProductionRule(18);}
-           | RETURN Exp SC                                          {printProductionRule(19);}
-           | IF LPAREN Exp RPAREN Statement                         {printProductionRule(20);}
-           | IF LPAREN Exp RPAREN Statement ELSE Statement          {printProductionRule(21);}
-           | WHILE LPAREN Exp RPAREN Statement                      {printProductionRule(22);}
-           | BREAK SC                                               {printProductionRule(23);}
-           | CONTINUE SC                                            {printProductionRule(24);}
-
-Call: ID LPAREN ExpList RPAREN                                      {printProductionRule(25);}
-      | ID LPAREN RPAREN                                            {printProductionRule(26);}
-
-ExpList: Exp                                                        {printProductionRule(27);}
-
-Type: INT                                                           {printProductionRule(28);}
-      | BYTE                                                        {printProductionRule(29);}
-      | BOOL                                                        {printProductionRule(30);}
-
-Exp: LPAREN Exp RPAREN                                              {printProductionRule(31);}
-     | Exp MINUS_PLUS Exp                                              {printProductionRule(32);}
-     | Exp DIV_MUL Exp                                             {printProductionRule(33);}
-     | ID                                                           {printProductionRule(34);}
-     | Call                                                         {printProductionRule(35);}
-     | NUM                                                          {printProductionRule(36);}
-     | NUM B                                                        {printProductionRule(37);}
-     | STRING                                                       {printProductionRule(38);}
-     | TRUE                                                         {printProductionRule(39);}
-     | FALSE                                                        {printProductionRule(40);}
-     | NOT Exp                                                      {printProductionRule(41);}
-     | Exp AND Exp                                                  {printProductionRule(42);}
-     | Exp OR Exp                                                   {printProductionRule(43);}
-     | Exp RELOP Exp                                                {printProductionRule(44);}
-     | LPAREN Type RPAREN Exp                                       {printProductionRule(45);}
+Exp:
+    LPAREN Exp RPAREN %prec LOW_PREC_PAREN_EXP {
+        printProductionRule(19);
+    }
+    | Exp MINUS_PLUS Exp {
+        printProductionRule(20);
+    }
+    | Exp DIV_MUL Exp {
+        printProductionRule(20);
+    }
+    | ID {
+        printProductionRule(21);
+    }
+    | Call {
+        printProductionRule(22);
+    }
+    | NUM {
+        printProductionRule(23);
+    }
+    | NUM B {
+        printProductionRule(24);
+    }
+    | STRING {
+        printProductionRule(25);
+    }
+    | TRUE {
+        printProductionRule(26);
+    }
+    | FALSE {
+        printProductionRule(27);
+    }
+    | NOT Exp {
+        printProductionRule(28);
+    }
+    | Exp AND Exp {
+        printProductionRule(29);
+    }
+    | Exp OR Exp {
+        printProductionRule(30);
+    }
+    | Exp EQUALORNOT Exp {
+        printProductionRule(31);
+    }
+    | Exp RELOP Exp {
+        printProductionRule(31);
+    }
+    | LPAREN Type RPAREN Exp {
+        printProductionRule(32);
+    }
+;
 %%
 
-int main(){
-        return yyparse();
+int main() {
+    return yyparse();
 }
 
-int yyerror(const char * message){
-	errorSyn(yylineno);
-	exit(0);
+int yyerror(const char* message) {
+    errorSyn(yylineno);
+    exit(1);
 }
